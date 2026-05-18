@@ -1,290 +1,799 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>App thực hành GitHub Pages + Code.gs</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Sổ trực điện tử - Phòng Truyền máu</title>
   <style>
+    :root {
+      --primary: #6d1731;
+      --primary-2: #8b2344;
+      --primary-3: #b84868;
+      --bg: #fff7f9;
+      --card: #ffffff;
+      --text: #26151b;
+      --muted: #7b6770;
+      --line: #ead3dc;
+      --ok: #0f766e;
+      --warn: #a16207;
+      --danger: #b91c1c;
+      --shadow: 0 10px 30px rgba(109, 23, 49, .12);
+      --radius: 18px;
+    }
     * { box-sizing: border-box; }
+    html, body { height: 100%; }
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f2f6f4;
-      color: #1f2933;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #fff7f9 0%, #fff 48%, #fff7f9 100%);
+      color: var(--text);
+      -webkit-text-size-adjust: 100%;
     }
-    .header {
-      background: #005fae;
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .hidden { display: none !important; }
+    .app { min-height: 100%; display: flex; flex-direction: column; }
+    .topbar {
+      position: sticky; top: 0; z-index: 20;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
       color: #fff;
-      padding: 14px 16px;
-      position: sticky;
-      top: 0;
-      z-index: 10;
+      padding: 12px 16px;
+      box-shadow: var(--shadow);
     }
-    .header-title {
-      font-size: 19px;
+    .topbar-inner {
+      max-width: 1180px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .logo {
+      width: 40px; height: 40px; border-radius: 12px;
+      background: rgba(255,255,255,.16);
+      display: grid; place-items: center;
+      font-weight: 900; letter-spacing: -.04em;
+      border: 1px solid rgba(255,255,255,.28);
+    }
+    .brand-title { font-weight: 800; line-height: 1.1; }
+    .brand-sub { font-size: 12px; opacity: .88; margin-top: 2px; }
+    .userbox { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+    .logout-btn, .ghost-btn {
+      border: 1px solid rgba(255,255,255,.35);
+      background: rgba(255,255,255,.12);
+      color: #fff;
+      border-radius: 999px;
+      padding: 8px 12px;
+    }
+    .layout { width: 100%; max-width: 1180px; margin: 0 auto; padding: 16px; flex: 1; }
+    .tabs {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+      margin-bottom: 16px;
+    }
+    .tab-btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--primary);
+      border-radius: 16px;
+      padding: 12px 10px;
       font-weight: 800;
-      line-height: 1.25;
+      box-shadow: 0 4px 14px rgba(109, 23, 49, .06);
     }
-    .header-subtitle {
-      margin-top: 4px;
-      font-size: 14px;
-      font-weight: 700;
-      opacity: .95;
-    }
-    .wrap {
-      width: min(760px, calc(100% - 24px));
-      margin: 14px auto;
+    .tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
     }
     .card {
-      background: #fff;
-      border-radius: 14px;
-      padding: 14px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
       margin-bottom: 14px;
-      box-shadow: 0 4px 16px rgba(0,0,0,.08);
     }
-    h1 {
-      margin: 0 0 12px;
-      font-size: 20px;
-    }
-    label {
-      display: block;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-    input {
+    .card h2, .card h3 { margin: 0 0 12px; color: var(--primary); }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    label { display: block; font-size: 13px; color: var(--muted); font-weight: 700; margin-bottom: 5px; }
+    input, select, textarea {
       width: 100%;
-      height: 42px;
-      border: 1px solid #cbd5e1;
-      border-radius: 10px;
-      padding: 8px 10px;
-      font-size: 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 11px 12px;
+      background: #fff;
+      color: var(--text);
       outline: none;
     }
-    .actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
-      margin-top: 10px;
-    }
-    button {
-      min-height: 42px;
+    textarea { min-height: 96px; resize: vertical; }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary-3); box-shadow: 0 0 0 3px rgba(184,72,104,.16); }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
+    .btn {
       border: 0;
-      border-radius: 10px;
-      padding: 8px 10px;
-      background: #0f8a4b;
+      background: var(--primary);
       color: #fff;
-      font-size: 15px;
+      border-radius: 14px;
+      padding: 11px 15px;
       font-weight: 800;
-      cursor: pointer;
+      min-height: 42px;
     }
-    button.secondary { background: #475569; }
-    button.danger { background: #dc2626; }
-    button:disabled {
-      opacity: .6;
-      cursor: not-allowed;
+    .btn.secondary { background: #f4e3ea; color: var(--primary); border: 1px solid var(--line); }
+    .btn.ok { background: var(--ok); }
+    .btn.warn { background: var(--warn); }
+    .btn.danger { background: var(--danger); }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+    .hint { font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 9px; border-radius: 999px;
+      background: #f4e3ea; color: var(--primary); font-size: 12px; font-weight: 800;
     }
-    .notice {
-      margin-top: 10px;
-      min-height: 40px;
-      border-radius: 10px;
-      padding: 10px;
-      background: #f1f5f9;
-      white-space: pre-wrap;
-      word-break: break-word;
+    .badge.ok { background: #dff7f4; color: var(--ok); }
+    .badge.warn { background: #fff1cf; color: var(--warn); }
+    .badge.danger { background: #fee2e2; color: var(--danger); }
+    .list { display: grid; gap: 10px; }
+    .item {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      background: #fff;
     }
-    .task {
-      display: grid;
-      grid-template-columns: 1fr auto auto;
-      gap: 8px;
-      align-items: center;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 10px;
-      margin-top: 8px;
+    .item-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+    .item-title { font-weight: 900; color: var(--primary); }
+    .item-meta { color: var(--muted); font-size: 13px; margin-top: 3px; line-height: 1.4; }
+    .kv { display: grid; grid-template-columns: 180px 1fr; gap: 8px; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+    .kv b { color: var(--primary); }
+    .login-wrap { min-height: 100dvh; display: grid; place-items: center; padding: 18px; }
+    .login-card { width: 100%; max-width: 430px; }
+    .login-title { text-align: center; color: var(--primary); margin-bottom: 14px; }
+    .alert {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      padding: 11px 12px;
+      margin: 10px 0;
+      color: var(--muted);
     }
-    .task.done .task-text {
-      text-decoration: line-through;
-      color: #64748b;
+    .alert.error { border-color: #fecaca; color: var(--danger); background: #fff5f5; }
+    .alert.ok { border-color: #a7f3d0; color: var(--ok); background: #f0fdfa; }
+    dialog {
+      width: min(860px, calc(100% - 22px));
+      border: 0;
+      border-radius: 20px;
+      padding: 0;
+      box-shadow: 0 24px 80px rgba(0,0,0,.25);
     }
-    .task-text {
-      font-weight: 700;
-      line-height: 1.35;
+    dialog::backdrop { background: rgba(38,21,27,.45); }
+    .modal-head {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      padding: 14px 16px; background: var(--primary); color: #fff;
     }
-    .task-time {
-      margin-top: 3px;
-      color: #64748b;
-      font-size: 13px;
-      font-weight: 400;
-    }
-    .task button {
-      width: auto;
-      min-height: 36px;
-      font-size: 13px;
-    }
-    @media (max-width: 560px) {
-      .actions { grid-template-columns: 1fr; }
-      .task { grid-template-columns: 1fr; }
-      .task button { width: 100%; }
+    .modal-body { padding: 16px; max-height: 78dvh; overflow: auto; }
+    .close-x { background: rgba(255,255,255,.16); color: #fff; border: 1px solid rgba(255,255,255,.35); border-radius: 12px; padding: 8px 10px; }
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.55); border-top-color: #fff; border-radius: 50%; display: inline-block; animation: spin .8s linear infinite; vertical-align: -3px; margin-right: 6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 760px) {
+      .layout { padding: 12px; padding-bottom: 88px; }
+      .tabs {
+        position: fixed; z-index: 25; left: 0; right: 0; bottom: 0;
+        background: rgba(255,247,249,.96); backdrop-filter: blur(10px);
+        padding: 8px; margin: 0; gap: 7px;
+        border-top: 1px solid var(--line);
+      }
+      .tab-btn { font-size: 12px; padding: 9px 5px; border-radius: 13px; }
+      .grid, .grid-3 { grid-template-columns: 1fr; }
+      .topbar-inner { align-items: flex-start; }
+      .brand-title { font-size: 15px; }
+      .brand-sub { display: none; }
+      .userbox { flex-direction: column; align-items: flex-end; gap: 5px; }
+      .kv { grid-template-columns: 1fr; }
+      .item-head { flex-direction: column; }
     }
   </style>
 </head>
 <body>
-  <header class="header">
-    <div class="header-title">APP THỰC HÀNH</div>
-    <div class="header-subtitle">GitHub Pages frontend + Google Apps Script Code.gs backend</div>
-  </header>
-
-  <main class="wrap">
-    <section class="card">
-      <h1>Sổ việc đơn giản</h1>
-      <label for="taskInput">Nhập công việc</label>
-      <input id="taskInput" type="text" placeholder="Ví dụ: Kiểm tra danh sách bệnh nhân hôm nay">
-
+  <div id="loginView" class="login-wrap">
+    <div class="card login-card">
+      <div class="login-title">
+        <div style="font-size:44px">🩸</div>
+        <h1 style="margin:6px 0 4px">Sổ trực điện tử</h1>
+        <div class="hint">Phòng Truyền máu - tone đỏ mận</div>
+      </div>
+      <div id="apiWarning" class="alert error hidden">Chưa cấu hình API_URL trong file index.html.</div>
+      <div class="alert">Tài khoản thử sau khi chạy setup(): <b>admin</b> / <b>123456</b></div>
+      <div>
+        <label>Mã nhân viên</label>
+        <input id="loginMa" autocomplete="username" placeholder="VD: admin" />
+      </div>
+      <div style="margin-top:10px">
+        <label>Mật khẩu</label>
+        <input id="loginMk" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu" />
+      </div>
       <div class="actions">
-        <button id="btnAdd" type="button">Thêm công việc</button>
-        <button id="btnReload" class="secondary" type="button">Tải danh sách</button>
-        <button id="btnPing" class="secondary" type="button">Test kết nối</button>
+        <button class="btn" id="loginBtn">Đăng nhập</button>
+      </div>
+      <div id="loginMsg"></div>
+    </div>
+  </div>
+
+  <div id="appView" class="app hidden">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="logo">TM</div>
+          <div>
+            <div class="brand-title">Sổ trực điện tử - Phòng Truyền máu</div>
+            <div class="brand-sub">Báo cáo / Bàn giao thường trực · Giao ban · PDF</div>
+          </div>
+        </div>
+        <div class="userbox">
+          <span id="userLabel"></span>
+          <button class="logout-btn" id="logoutBtn">Đăng xuất</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <nav class="tabs">
+        <button class="tab-btn active" data-tab="create">Tạo phiếu</button>
+        <button class="tab-btn" data-tab="tickets">DS phiếu</button>
+        <button class="tab-btn" data-tab="meeting">Giao ban</button>
+        <button class="tab-btn" data-tab="search">Tra cứu/PDF</button>
+      </nav>
+
+      <section id="tab-create" class="tab-panel"></section>
+      <section id="tab-tickets" class="tab-panel hidden"></section>
+      <section id="tab-meeting" class="tab-panel hidden"></section>
+      <section id="tab-search" class="tab-panel hidden"></section>
+    </main>
+  </div>
+
+  <dialog id="detailDialog">
+    <div class="modal-head">
+      <b id="modalTitle">Chi tiết</b>
+      <button class="close-x" onclick="detailDialog.close()">Đóng</button>
+    </div>
+    <div id="modalBody" class="modal-body"></div>
+  </dialog>
+
+<script>
+  // Dán link Web App /exec của Google Apps Script vào đây.
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzxDS-mxBiYBOp5nEWx_ZQKTovd6EOEnwFK1dvcYg4vLj4k0BNe_LrD7773n5Psi0Y-/exec';
+
+  const state = {
+    token: localStorage.getItem('sotruc_token') || '',
+    user: JSON.parse(localStorage.getItem('sotruc_user') || 'null'),
+    staff: [],
+    tickets: [],
+    meetings: [],
+    activeTab: 'create'
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+  const today = () => new Date().toISOString().slice(0,10);
+  const nowTime = () => new Date().toTimeString().slice(0,5);
+
+  function apiConfigured() {
+    return API_URL && API_URL !== 'PASTE_WEB_APP_URL_HERE';
+  }
+
+  async function callApi(action, data = {}) {
+    if (!apiConfigured()) throw new Error('Chưa cấu hình API_URL trong index.html.');
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, data })
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.message || 'Có lỗi xảy ra.');
+    return json;
+  }
+
+  function setMsg(el, text, type='') {
+    el.innerHTML = text ? `<div class="alert ${type}">${esc(text)}</div>` : '';
+  }
+
+  function setLoading(btn, isLoading, text) {
+    if (!btn) return;
+    if (isLoading) {
+      btn.dataset.old = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner"></span>${text || 'Đang xử lý...'}`;
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = btn.dataset.old || btn.innerHTML;
+    }
+  }
+
+  function staffOptions(selected='') {
+    const opts = ['<option value="">-- Chọn nhân viên --</option>'];
+    state.staff.forEach(s => {
+      const val = `${s.ma}|${s.ten}`;
+      opts.push(`<option value="${esc(val)}" ${val === selected ? 'selected' : ''}>${esc(s.ten)} - ${esc(s.ma)}</option>`);
+    });
+    return opts.join('');
+  }
+
+  function splitStaffValue(v) {
+    const [ma, ...rest] = String(v || '').split('|');
+    return { ma: ma || '', ten: rest.join('|') || '' };
+  }
+
+  async function login() {
+    const btn = $('loginBtn');
+    setLoading(btn, true, 'Đang đăng nhập...');
+    setMsg($('loginMsg'), '');
+    try {
+      const data = await callApi('login', { maNhanVien: $('loginMa').value, matKhau: $('loginMk').value });
+      state.token = data.token;
+      state.user = data.user;
+      localStorage.setItem('sotruc_token', state.token);
+      localStorage.setItem('sotruc_user', JSON.stringify(state.user));
+      await bootApp();
+    } catch (err) {
+      setMsg($('loginMsg'), err.message, 'error');
+    } finally {
+      setLoading(btn, false);
+    }
+  }
+
+  async function bootApp() {
+    if (!apiConfigured()) $('apiWarning').classList.remove('hidden');
+    if (!state.token) {
+      $('loginView').classList.remove('hidden');
+      $('appView').classList.add('hidden');
+      return;
+    }
+    try {
+      const init = await callApi('getInit', { token: state.token });
+      state.user = init.user;
+      state.staff = init.staff || [];
+      localStorage.setItem('sotruc_user', JSON.stringify(state.user));
+      $('userLabel').textContent = `${state.user.tenNhanVien} (${state.user.maNhanVien})`;
+      $('loginView').classList.add('hidden');
+      $('appView').classList.remove('hidden');
+      renderCreateTab();
+      await loadTickets();
+      await loadMeetings();
+    } catch (err) {
+      localStorage.removeItem('sotruc_token');
+      localStorage.removeItem('sotruc_user');
+      state.token = '';
+      state.user = null;
+      $('loginView').classList.remove('hidden');
+      $('appView').classList.add('hidden');
+      setMsg($('loginMsg'), err.message, 'error');
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem('sotruc_token');
+    localStorage.removeItem('sotruc_user');
+    location.reload();
+  }
+
+  function switchTab(tab) {
+    state.activeTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+    $(`tab-${tab}`).classList.remove('hidden');
+    if (tab === 'tickets' || tab === 'search') loadTickets();
+    if (tab === 'meeting') loadMeetings();
+  }
+
+  function renderCreateTab() {
+    $('tab-create').innerHTML = `
+      <div class="card">
+        <h2>Tạo phiếu báo cáo / bàn giao thường trực</h2>
+        <div class="hint">Chọn loại phiếu. Nếu chọn “Báo cáo + bàn giao thường trực”, phần bàn giao sẽ sang DS phiếu để ký, phần báo cáo sẽ sang tab Giao ban.</div>
       </div>
 
-      <div id="notice" class="notice">Chưa kết nối.</div>
-    </section>
-
-    <section class="card">
-      <h1>Danh sách công việc</h1>
-      <div id="tasks"></div>
-    </section>
-  </main>
-
-  <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbw8NJmrzv0bdFkHL2CIcC4fSlGVv7O_gLnSknjdxoYCmNg__J_baDJssGjug_N4oAE5Zw/exec';
-
-    const $ = id => document.getElementById(id);
-
-    async function api(action, data = {}) {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        redirect: 'follow',
-        body: JSON.stringify({ action, data })
-      });
-      const result = await res.json();
-      if (!result.ok) throw new Error(result.message || 'Có lỗi xảy ra');
-      return result;
-    }
-
-    function setBusy(isBusy) {
-      $('btnAdd').disabled = isBusy;
-      $('btnReload').disabled = isBusy;
-      $('btnPing').disabled = isBusy;
-    }
-
-    function show(message) {
-      $('notice').textContent = message;
-    }
-
-    function escapeHtml(value) {
-      return String(value)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
-    }
-
-    function render(tasks) {
-      if (!tasks.length) {
-        $('tasks').innerHTML = '<div class="notice">Chưa có công việc nào.</div>';
-        return;
-      }
-
-      $('tasks').innerHTML = tasks.map(t => `
-        <div class="task ${t.status === 'Đã xong' ? 'done' : ''}">
+      <form id="ticketForm" class="card">
+        <h3>I. Thông tin phiếu</h3>
+        <div class="grid">
           <div>
-            <div class="task-text">${escapeHtml(t.text)}</div>
-            <div class="task-time">${escapeHtml(t.status)} · ${escapeHtml(t.createdAt)}</div>
+            <label>Loại phiếu</label>
+            <select id="loaiPhieu" required>
+              <option value="BAN_GIAO">Chỉ bàn giao thường trực</option>
+              <option value="BAO_CAO_BAN_GIAO">Báo cáo + bàn giao thường trực</option>
+            </select>
           </div>
-          <button type="button" onclick="toggleTask('${t.id}')">${t.status === 'Đã xong' ? 'Mở lại' : 'Đã xong'}</button>
-          <button type="button" class="danger" onclick="removeTask('${t.id}')">Xóa</button>
+          <div>
+            <label>Ngày trực</label>
+            <input id="ngayTruc" type="date" value="${today()}" required />
+          </div>
+          <div>
+            <label>Khoa/Phòng</label>
+            <input id="khoaPhong" value="${esc(state.user?.phongLamViec || 'Phòng Truyền máu')}" />
+          </div>
+          <div>
+            <label>Loại bàn giao</label>
+            <select id="loaiBanGiao">
+              <option>Giờ hành chính → Người trực</option>
+              <option>Người trực → Giờ hành chính</option>
+              <option>Người trực → Tua trực sau</option>
+              <option>Bàn giao khác</option>
+            </select>
+          </div>
+          <div>
+            <label>Người giao</label>
+            <select id="nguoiGiao">${staffOptions()}</select>
+          </div>
+          <div>
+            <label>Người nhận</label>
+            <select id="nguoiNhan">${staffOptions()}</select>
+          </div>
         </div>
-      `).join('');
+
+        <div id="reportBlock" style="margin-top:16px" class="hidden">
+          <h3>II. Báo cáo thường trực</h3>
+          <div class="grid">
+            <div>
+              <label>Nhân viên phiên thường trực</label>
+              <input id="nhanVienPhienTruc" placeholder="VD: Nguyễn Văn A, Trần Thị B..." />
+            </div>
+            <div>
+              <label>Gợi ý thời gian trực</label>
+              <input id="thoiGianGoiY" value="Ngày ${today()}" />
+            </div>
+          </div>
+          <div class="grid" style="margin-top:12px">
+            <div>
+              <label>1. Tình hình chung</label>
+              <textarea id="tinhHinhChung" placeholder="Tóm tắt tình hình chung trong phiên trực..."></textarea>
+            </div>
+            <div>
+              <label>2. Chuyên môn</label>
+              <textarea id="baoCaoChuyenMon" placeholder="Nội dung chuyên môn, ca đáng lưu ý, kết quả báo động..."></textarea>
+            </div>
+            <div>
+              <label>Công việc đã xử lý</label>
+              <textarea id="congViecDaXuLy"></textarea>
+            </div>
+            <div>
+              <label>Công việc còn tồn / cần bàn giao</label>
+              <textarea id="congViecConTon"></textarea>
+            </div>
+          </div>
+          <div style="margin-top:12px">
+            <label>Đề xuất / kiến nghị</label>
+            <textarea id="deXuatKienNghi"></textarea>
+          </div>
+        </div>
+
+        <div style="margin-top:16px">
+          <h3>III. Nội dung bàn giao</h3>
+          <div class="grid">
+            <div>
+              <label>1. Tài sản, dụng cụ, thiết bị y tế</label>
+              <textarea id="banGiaoTaiSan" placeholder="VD: máy, tủ, dụng cụ, vật tư, tình trạng..."></textarea>
+            </div>
+            <div>
+              <label>2. Chuyên môn</label>
+              <textarea id="banGiaoChuyenMon" placeholder="VD: mẫu/kết quả tồn, việc cần theo dõi..."></textarea>
+            </div>
+          </div>
+          <div style="margin-top:12px">
+            <label>3. Vấn đề khác</label>
+            <textarea id="banGiaoVanDeKhac" placeholder="Nhân sự, CNTT, an ninh, điện nước, vấn đề khác..."></textarea>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn" id="createBtn" type="submit">Tạo phiếu</button>
+          <button class="btn secondary" type="button" onclick="document.getElementById('ticketForm').reset(); document.getElementById('ngayTruc').value='${today()}'; toggleReportBlock();">Làm mới</button>
+        </div>
+        <div id="createMsg"></div>
+      </form>
+    `;
+
+    $('loaiPhieu').addEventListener('change', toggleReportBlock);
+    $('ticketForm').addEventListener('submit', submitTicket);
+    toggleReportBlock();
+  }
+
+  function toggleReportBlock() {
+    const show = $('loaiPhieu')?.value === 'BAO_CAO_BAN_GIAO';
+    $('reportBlock')?.classList.toggle('hidden', !show);
+  }
+
+  async function submitTicket(e) {
+    e.preventDefault();
+    const btn = $('createBtn');
+    const giao = splitStaffValue($('nguoiGiao').value);
+    const nhan = splitStaffValue($('nguoiNhan').value);
+    const payload = {
+      loaiPhieu: $('loaiPhieu').value,
+      ngayTruc: $('ngayTruc').value,
+      khoaPhong: $('khoaPhong').value,
+      loaiBanGiao: $('loaiBanGiao').value,
+      nguoiGiaoMa: giao.ma,
+      nguoiGiaoTen: giao.ten,
+      nguoiNhanMa: nhan.ma,
+      nguoiNhanTen: nhan.ten,
+      nhanVienPhienTruc: $('nhanVienPhienTruc')?.value || '',
+      tinhHinhChung: $('tinhHinhChung')?.value || '',
+      baoCaoChuyenMon: $('baoCaoChuyenMon')?.value || '',
+      congViecDaXuLy: $('congViecDaXuLy')?.value || '',
+      congViecConTon: $('congViecConTon')?.value || '',
+      deXuatKienNghi: $('deXuatKienNghi')?.value || '',
+      banGiaoTaiSan: $('banGiaoTaiSan').value,
+      banGiaoChuyenMon: $('banGiaoChuyenMon').value,
+      banGiaoVanDeKhac: $('banGiaoVanDeKhac').value
+    };
+    if (!payload.nguoiGiaoMa || !payload.nguoiNhanMa) {
+      setMsg($('createMsg'), 'Vui lòng chọn người giao và người nhận.', 'error');
+      return;
     }
-
-    async function ping() {
-      setBusy(true);
-      try {
-        const result = await api('ping');
-        show(result.message + '\n' + result.time);
-      } catch (err) {
-        show('Lỗi kết nối: ' + err.message);
-      } finally {
-        setBusy(false);
-      }
+    setLoading(btn, true, 'Đang tạo phiếu...');
+    try {
+      await callApi('createTicket', { token: state.token, payload });
+      setMsg($('createMsg'), 'Đã tạo phiếu. Vào tab DS phiếu để ký bàn giao. Nếu là báo cáo + bàn giao, tab Giao ban sẽ tự có dữ liệu.', 'ok');
+      await loadTickets();
+      await loadMeetings();
+    } catch (err) {
+      setMsg($('createMsg'), err.message, 'error');
+    } finally {
+      setLoading(btn, false);
     }
+  }
 
-    async function loadTasks() {
-      setBusy(true);
-      try {
-        const result = await api('list');
-        render(result.tasks);
-        show('Đã tải danh sách.');
-      } catch (err) {
-        show('Lỗi tải danh sách: ' + err.message);
-      } finally {
-        setBusy(false);
-      }
+  async function loadTickets() {
+    try {
+      const data = await callApi('listTickets', { token: state.token });
+      state.tickets = data.tickets || [];
+      renderTicketsTab();
+      renderSearchTab();
+    } catch (err) {
+      $('tab-tickets').innerHTML = `<div class="alert error">${esc(err.message)}</div>`;
     }
+  }
 
-    async function addTask() {
-      const text = $('taskInput').value.trim();
-      if (!text) {
-        show('Anh chưa nhập nội dung công việc.');
-        return;
-      }
+  function statusBadge(status) {
+    const s = String(status || '');
+    let cls = '';
+    if (s.includes('PDF') || s.includes('ký đủ')) cls = 'ok';
+    else if (s.includes('Chờ')) cls = 'warn';
+    return `<span class="badge ${cls}">${esc(s || 'Chưa rõ')}</span>`;
+  }
 
-      setBusy(true);
-      try {
-        const result = await api('add', { text });
-        $('taskInput').value = '';
-        render(result.tasks);
-        show('Đã thêm công việc.');
-      } catch (err) {
-        show('Lỗi thêm công việc: ' + err.message);
-      } finally {
-        setBusy(false);
-      }
+  function ticketTitle(t) {
+    return t.LoaiPhieu === 'BAO_CAO_BAN_GIAO' ? 'Báo cáo + bàn giao thường trực' : 'Chỉ bàn giao thường trực';
+  }
+
+  function renderTicketsTab() {
+    $('tab-tickets').innerHTML = `
+      <div class="card">
+        <h2>DS phiếu / Chờ ký bàn giao</h2>
+        <div class="hint">Người giao và người nhận vào đây để xem nội dung và ký xác nhận. Khi ký đủ, hệ thống tự xuất PDF.</div>
+        <div class="actions"><button class="btn secondary" onclick="loadTickets()">Tải lại</button></div>
+      </div>
+      <div class="list">${state.tickets.map(renderTicketItem).join('') || '<div class="card hint">Chưa có phiếu.</div>'}</div>
+    `;
+  }
+
+  function renderTicketItem(t) {
+    return `
+      <div class="item">
+        <div class="item-head">
+          <div>
+            <div class="item-title">${esc(ticketTitle(t))}</div>
+            <div class="item-meta">${esc(t.NgayTruc)} · ${esc(t.KhoaPhong)} · ${esc(t.LoaiBanGiao)}</div>
+            <div class="item-meta">Giao: ${esc(t.NguoiGiaoTen)} → Nhận: ${esc(t.NguoiNhanTen)}</div>
+          </div>
+          <div>${statusBadge(t.TrangThai)}</div>
+        </div>
+        <div class="actions">
+          <button class="btn secondary" onclick="showTicket('${esc(t.PhieuID)}')">Xem</button>
+          <button class="btn" onclick="signTicket('${esc(t.PhieuID)}','giao', this)">Người giao ký</button>
+          <button class="btn ok" onclick="signTicket('${esc(t.PhieuID)}','nhan', this)">Người nhận ký</button>
+          ${t.PdfUrl ? `<a class="btn secondary" href="${esc(t.PdfUrl)}" target="_blank" rel="noopener">Xem PDF</a>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  function findTicket(id) { return state.tickets.find(t => String(t.PhieuID) === String(id)); }
+  function findMeeting(id) { return state.meetings.find(m => String(m.MeetingID) === String(id)); }
+
+  function showTicket(id) {
+    const t = findTicket(id);
+    if (!t) return;
+    $('modalTitle').textContent = 'Chi tiết phiếu bàn giao';
+    $('modalBody').innerHTML = `
+      ${kv('Mã phiếu', t.PhieuID)}
+      ${kv('Loại phiếu', ticketTitle(t))}
+      ${kv('Ngày trực', t.NgayTruc)}
+      ${kv('Khoa/Phòng', t.KhoaPhong)}
+      ${kv('Loại bàn giao', t.LoaiBanGiao)}
+      ${kv('Người giao', `${t.NguoiGiaoTen} (${t.NguoiGiaoMa})`)}
+      ${kv('Người nhận', `${t.NguoiNhanTen} (${t.NguoiNhanMa})`)}
+      <h3>Nội dung bàn giao</h3>
+      ${kv('1. Tài sản, dụng cụ, thiết bị y tế', t.BanGiaoTaiSan)}
+      ${kv('2. Chuyên môn', t.BanGiaoChuyenMon)}
+      ${kv('3. Vấn đề khác', t.BanGiaoVanDeKhac)}
+      ${t.LoaiPhieu === 'BAO_CAO_BAN_GIAO' ? `
+        <h3>Báo cáo thường trực</h3>
+        ${kv('Nhân viên phiên trực', t.NhanVienPhienTruc)}
+        ${kv('Tình hình chung', t.TinhHinhChung)}
+        ${kv('Chuyên môn', t.BaoCaoChuyenMon)}
+        ${kv('Công việc đã xử lý', t.CongViecDaXuLy)}
+        ${kv('Công việc còn tồn', t.CongViecConTon)}
+        ${kv('Đề xuất/kiến nghị', t.DeXuatKienNghi)}
+      ` : ''}
+      <h3>Xác nhận</h3>
+      ${kv('Người giao ký', `${t.GiaoKyTen || ''} ${t.GiaoKyLuc ? ' - ' + t.GiaoKyLuc : ''}`)}
+      ${kv('Người nhận ký', `${t.NhanKyTen || ''} ${t.NhanKyLuc ? ' - ' + t.NhanKyLuc : ''}`)}
+      ${t.PdfUrl ? `<div class="actions"><a class="btn" href="${esc(t.PdfUrl)}" target="_blank" rel="noopener">Mở PDF</a></div>` : ''}
+    `;
+    detailDialog.showModal();
+  }
+
+  function kv(k, v) {
+    return `<div class="kv"><b>${esc(k)}</b><div>${String(esc(v || '')).replace(/\n/g, '<br>')}</div></div>`;
+  }
+
+  async function signTicket(id, role, btn) {
+    if (!confirm(role === 'giao' ? 'Xác nhận ký với vai trò người giao?' : 'Xác nhận ký với vai trò người nhận?')) return;
+    setLoading(btn, true, 'Đang ký...');
+    try {
+      await callApi('signTicket', { token: state.token, phieuId: id, role });
+      await loadTickets();
+      alert('Đã ký xác nhận. Nếu phiếu đã đủ chữ ký, PDF sẽ được tạo tự động.');
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setLoading(btn, false);
     }
+  }
 
-    async function toggleTask(id) {
-      setBusy(true);
-      try {
-        const result = await api('toggle', { id });
-        render(result.tasks);
-        show('Đã cập nhật trạng thái.');
-      } catch (err) {
-        show('Lỗi cập nhật: ' + err.message);
-      } finally {
-        setBusy(false);
-      }
+  async function loadMeetings() {
+    try {
+      const data = await callApi('listMeetings', { token: state.token });
+      state.meetings = data.meetings || [];
+      renderMeetingTab();
+    } catch (err) {
+      $('tab-meeting').innerHTML = `<div class="alert error">${esc(err.message)}</div>`;
     }
+  }
 
-    async function removeTask(id) {
-      setBusy(true);
-      try {
-        const result = await api('remove', { id });
-        render(result.tasks);
-        show('Đã xóa công việc.');
-      } catch (err) {
-        show('Lỗi xóa: ' + err.message);
-      } finally {
-        setBusy(false);
-      }
+  function renderMeetingTab() {
+    $('tab-meeting').innerHTML = `
+      <div class="card">
+        <h2>Giao ban</h2>
+        <div class="hint">Tab này nhận phần báo cáo từ phiếu “Báo cáo + bàn giao thường trực”. Nhập kết luận/chỉ đạo, thư ký và chủ tọa ký để xuất PDF giao ban.</div>
+        <div class="actions"><button class="btn secondary" onclick="loadMeetings()">Tải lại</button></div>
+      </div>
+      <div class="list">${state.meetings.map(renderMeetingItem).join('') || '<div class="card hint">Chưa có báo cáo chờ giao ban.</div>'}</div>
+    `;
+  }
+
+  function renderMeetingItem(m) {
+    const p = m._phieu || {};
+    return `
+      <div class="item">
+        <div class="item-head">
+          <div>
+            <div class="item-title">Giao ban ngày ${esc(m.NgayGiaoBan || p.NgayTruc || '')}</div>
+            <div class="item-meta">Phiếu: ${esc(m.PhieuID)} · Trực: ${esc(p.NhanVienPhienTruc || '')}</div>
+            <div class="item-meta">${esc((p.TinhHinhChung || '').slice(0, 140))}${(p.TinhHinhChung || '').length > 140 ? '...' : ''}</div>
+          </div>
+          <div>${statusBadge(m.TrangThai)}</div>
+        </div>
+        <div class="actions">
+          <button class="btn secondary" onclick="openMeeting('${esc(m.MeetingID)}')">Mở giao ban</button>
+          ${m.PdfUrl ? `<a class="btn secondary" href="${esc(m.PdfUrl)}" target="_blank" rel="noopener">Xem PDF</a>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  function openMeeting(id) {
+    const m = findMeeting(id);
+    if (!m) return;
+    $('modalTitle').textContent = 'Giao ban';
+    $('modalBody').innerHTML = `
+      <form id="meetingForm">
+        <input type="hidden" id="meetingId" value="${esc(m.MeetingID)}" />
+        <div class="grid">
+          <div><label>Ngày giao ban</label><input id="ngayGiaoBan" type="date" value="${esc(m.NgayGiaoBan || today())}" /></div>
+          <div><label>Giờ giao ban</label><input id="gioGiaoBan" type="time" value="${esc(m.GioGiaoBan || nowTime())}" /></div>
+          <div><label>Chủ tọa</label><input id="chuToa" value="${esc(m.ChuToa || '')}" /></div>
+          <div><label>Thư ký</label><input id="thuKy" value="${esc(m.ThuKy || '')}" /></div>
+        </div>
+        <div style="margin-top:12px"><label>Thành phần tham gia</label><textarea id="thanhPhan">${esc(m.ThanhPhan || '')}</textarea></div>
+        <h3>Nội dung báo cáo tự tổng hợp</h3>
+        <div class="alert">${esc(m.NoiDungTuDong || '').replace(/\n/g, '<br>')}</div>
+        <div><label>Kết luận / chỉ đạo của chủ tọa</label><textarea id="ketLuanChiDao">${esc(m.KetLuanChiDao || '')}</textarea></div>
+        <div style="margin-top:12px"><label>Nhiệm vụ sau giao ban</label><textarea id="nhiemVuSauGiaoBan">${esc(m.NhiemVuSauGiaoBan || '')}</textarea></div>
+        <div class="actions">
+          <button class="btn" type="submit">Lưu giao ban</button>
+          <button class="btn warn" type="button" onclick="signMeeting('${esc(m.MeetingID)}','thuky', this)">Thư ký ký</button>
+          <button class="btn ok" type="button" onclick="signMeeting('${esc(m.MeetingID)}','chutoa', this)">Chủ tọa ký</button>
+          ${m.PdfUrl ? `<a class="btn secondary" href="${esc(m.PdfUrl)}" target="_blank" rel="noopener">Mở PDF</a>` : ''}
+        </div>
+      </form>
+    `;
+    $('meetingForm').addEventListener('submit', saveMeeting);
+    detailDialog.showModal();
+  }
+
+  async function saveMeeting(e) {
+    e.preventDefault();
+    const payload = {
+      meetingId: $('meetingId').value,
+      ngayGiaoBan: $('ngayGiaoBan').value,
+      gioGiaoBan: $('gioGiaoBan').value,
+      chuToa: $('chuToa').value,
+      thuKy: $('thuKy').value,
+      thanhPhan: $('thanhPhan').value,
+      ketLuanChiDao: $('ketLuanChiDao').value,
+      nhiemVuSauGiaoBan: $('nhiemVuSauGiaoBan').value
+    };
+    try {
+      await callApi('saveMeeting', { token: state.token, payload });
+      await loadMeetings();
+      detailDialog.close();
+      alert('Đã lưu giao ban.');
+    } catch (err) {
+      alert(err.message);
     }
+  }
 
-    $('btnPing').addEventListener('click', ping);
-    $('btnReload').addEventListener('click', loadTasks);
-    $('btnAdd').addEventListener('click', addTask);
-    $('taskInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter') addTask();
-    });
-  </script>
+  async function signMeeting(id, role, btn) {
+    if (!confirm(role === 'thuky' ? 'Thư ký ký xác nhận?' : 'Chủ tọa ký xác nhận?')) return;
+    setLoading(btn, true, 'Đang ký...');
+    try {
+      await callApi('signMeeting', { token: state.token, meetingId: id, role });
+      await loadMeetings();
+      detailDialog.close();
+      alert('Đã ký giao ban. Nếu đủ chữ ký, PDF giao ban sẽ được tạo tự động.');
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setLoading(btn, false);
+    }
+  }
+
+  function renderSearchTab() {
+    const pdfItems = state.tickets.filter(t => t.PdfUrl);
+    $('tab-search').innerHTML = `
+      <div class="card">
+        <h2>Tra cứu / PDF</h2>
+        <div class="hint">Các phiếu đã ký đủ sẽ có PDF. Khi triển khai thật, ta sẽ bổ sung bộ lọc từ ngày - đến ngày, người giao, người nhận, loại phiếu.</div>
+        <div class="actions"><button class="btn secondary" onclick="loadTickets(); loadMeetings();">Tải lại</button></div>
+      </div>
+      <div class="card">
+        <h3>PDF phiếu bàn giao</h3>
+        <div class="list">${pdfItems.map(t => `
+          <div class="item">
+            <div class="item-title">${esc(ticketTitle(t))}</div>
+            <div class="item-meta">${esc(t.NgayTruc)} · ${esc(t.NguoiGiaoTen)} → ${esc(t.NguoiNhanTen)}</div>
+            <div class="actions"><a class="btn secondary" href="${esc(t.PdfUrl)}" target="_blank" rel="noopener">Xem PDF</a></div>
+          </div>
+        `).join('') || '<div class="hint">Chưa có PDF phiếu bàn giao.</div>'}</div>
+      </div>
+      <div class="card">
+        <h3>PDF giao ban</h3>
+        <div class="list">${state.meetings.filter(m => m.PdfUrl).map(m => `
+          <div class="item">
+            <div class="item-title">Giao ban ${esc(m.NgayGiaoBan)}</div>
+            <div class="item-meta">Chủ tọa: ${esc(m.ChuToa)} · Thư ký: ${esc(m.ThuKy)}</div>
+            <div class="actions"><a class="btn secondary" href="${esc(m.PdfUrl)}" target="_blank" rel="noopener">Xem PDF</a></div>
+          </div>
+        `).join('') || '<div class="hint">Chưa có PDF giao ban.</div>'}</div>
+      </div>
+    `;
+  }
+
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.tab-btn');
+    if (btn) switchTab(btn.dataset.tab);
+  });
+  $('loginBtn').addEventListener('click', login);
+  $('loginMk').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+  $('logoutBtn').addEventListener('click', logout);
+
+  if (!apiConfigured()) $('apiWarning').classList.remove('hidden');
+  bootApp();
+</script>
 </body>
 </html>
