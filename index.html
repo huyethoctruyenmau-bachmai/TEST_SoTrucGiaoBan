@@ -1,3 +1,4 @@
+<!-- VERSION: 248.166 | index: 248 | Code.gs: 166 | INDEX-248.080726-REPORT-CM-GIAOBAN-PDF -->
 <!doctype html>
 <html lang="vi">
 <head>
@@ -4942,7 +4943,7 @@
       <p><strong>MedOps Pro - Medical Operations Professional</strong></p>
       <p>Developed by Nguyễn Văn Chính</p>
       <p>Trung tâm Huyết học và Truyền máu - Bệnh viện Bạch Mai</p>
-      <p class="login-version">Version: INDEX-242.230626-PRELOAD-EQUIPMENT-CONFIG-CACHE</p>
+      <p class="login-version">Version: INDEX-247.270626-REPORT-CM-SPLIT-FIX</p>
     </div>
   </div>
 
@@ -4986,7 +4987,7 @@
       <button class="tab-btn" data-tab="meeting"><span class="ico"><svg class="icon2d" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="6" r="2.1"/><circle cx="5.8" cy="9.3" r="1.9"/><circle cx="18.2" cy="9.3" r="1.9"/><path d="M8.6 13.2c.8-1.4 2-2.1 3.4-2.1s2.6.7 3.4 2.1"/><path d="M2.8 15.7c.4-1.9 1.5-2.9 3-2.9s2.6 1 3 2.9"/><path d="M15.2 15.7c.4-1.9 1.5-2.9 3-2.9s2.6 1 3 2.9"/><ellipse cx="12" cy="16.6" rx="6.3" ry="2.2"/><path d="M12 18.8v2.2M8.7 21h6.6"/></svg></span><span>Họp</span></button>
       <button class="tab-btn" data-tab="pdf"><span class="ico"><svg class="icon2d" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 3h7l4 4v14H7V3Z"/><path d="M14 3v5h5M10 12h6M10 16h6"/></svg></span><span>DS phiếu</span></button>
     </nav>
-    <div class="app-version">Version: INDEX-242.230626-PRELOAD-EQUIPMENT-CONFIG-CACHE</div>
+    <div class="app-version">Version: INDEX-247.270626-REPORT-CM-SPLIT-FIX</div>
   </div>
   <datalist id="deptList"></datalist>
   <datalist id="staffDatalist"></datalist>
@@ -5011,7 +5012,7 @@
 ========================================================= */
 
 // ===== MODULE: JS_CONFIG_STATE_START =====
-const APP_VERSION = 'INDEX-244.270626-EQUIPMENT-CONFIG-OWN-DEPT';
+const APP_VERSION = 'INDEX-248.080726-REPORT-CM-GIAOBAN-PDF';
 const PWA_WINDOW_TITLE = 'MedOps Pro';
 function applyPwaWindowTitle(){
   try { document.title = PWA_WINDOW_TITLE; } catch(e) {}
@@ -5049,7 +5050,7 @@ function canCurrentUserExportExcel(){
 function canConfigExcelExport(){
   return !!(state.permissions && state.permissions.canConfigExcelExport) || canOpenAdminSettings();
 }
-const API_URL = 'https://script.google.com/macros/s/AKfycbwTNiuHPVceCZWzOLweJFF9kDSB4td-s6Gy71gDeWkgrDiXTSSd52oMvLrQxF0ROlSm/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxLHKUczat2WOH1R4W_YVVsUeBAmEuJ-4EjOEWNuBYXvX0oL4Dr6OhyO8f4lHPfn-8Nmg/exec';
 
 const LOAI_BAN_GIAO = 'Bàn giao thường trực';
 const LOAI_BAO_CAO = 'Báo cáo thường trực';
@@ -5593,7 +5594,7 @@ function renderCreateTab(){
           </div>
           <div class="col-12">
             <label>2.3 Chuyên môn</label>
-            <textarea id="baoCaoChuyenMon">Không có gì đặc biệt</textarea>
+            <div id="baoCaoChuyenMonBox"><textarea id="baoCaoChuyenMon">Không có gì đặc biệt</textarea></div>
           </div>
           <div class="col-12">
             <label>2.4 Vấn đề khác</label>
@@ -5689,6 +5690,7 @@ function updateCreateFormNumbering(){
   if($('#handoverLabel4')) $('#handoverLabel4').textContent = `${n}.4 Thời gian bàn giao`;
   if(isReport) ensureLoginUserInStaff();
   renderSoLieuTrucInput(isReport && isTM);
+  renderBaoCaoChuyenMonInput(isReport && isTM);
   renderBanGiaoTaiSanInput(hasConfiguredEquipmentForDept(createDeptValue));
   refreshStaffList();
   setTimeout(() => $$('textarea').forEach(autoGrow), 0);
@@ -5903,6 +5905,114 @@ window.removeStaff = function(ma){
   refreshStaffList();
 }
 
+
+const BAO_CAO_CHUYEN_MON_FIELDS = [
+  {key:'toiCap', label:'Tối cấp'},
+  {key:'phanUngTruyenMau', label:'Phản ứng truyền máu'},
+  {key:'nhomMauKho', label:'Nhóm máu khó'},
+  {key:'cheoDuongTinh', label:'Chéo dương tính'},
+  {key:'khac', label:'Khác'}
+];
+
+function normalizeBaoCaoChuyenMonDetail(data={}, fallbackText=''){
+  const src = data && typeof data === 'object' ? data : {};
+  const parsed = parseBaoCaoChuyenMonText(fallbackText || '');
+  const out = {};
+  BAO_CAO_CHUYEN_MON_FIELDS.forEach(f => {
+    out[f.key] = String(src[f.key] ?? parsed[f.key] ?? '').trim();
+  });
+  return out;
+}
+
+function parseBaoCaoChuyenMonText(text=''){
+  const out = {};
+  const lines = String(text || '').split(/\r?\n/);
+  lines.forEach(line => {
+    const idx = line.indexOf(':');
+    if(idx < 0) return;
+    const label = norm(line.slice(0, idx));
+    const value = line.slice(idx + 1).trim();
+    BAO_CAO_CHUYEN_MON_FIELDS.forEach(f => {
+      if(!out[f.key] && (label === norm(f.label) || label.includes(norm(f.label)))) out[f.key] = value;
+    });
+  });
+  return out;
+}
+
+function hasBaoCaoChuyenMonDetail(detail){
+  return BAO_CAO_CHUYEN_MON_FIELDS.some(f => String(detail?.[f.key] || '').trim());
+}
+
+function baoCaoChuyenMonDetailHtml(detail={}, prefix='baoCaoCM'){
+  const d = normalizeBaoCaoChuyenMonDetail(detail);
+  return `<div class="grid bao-cao-cm-split" data-split="1">
+    ${BAO_CAO_CHUYEN_MON_FIELDS.map(f => `
+      <div class="col-12">
+        <label>${esc(f.label)}</label>
+        <textarea id="${escAttr(prefix + '_' + f.key)}" class="bao-cao-cm-detail" data-key="${escAttr(f.key)}" placeholder="Nhập ${escAttr(f.label.toLowerCase())}">${esc(d[f.key] || '')}</textarea>
+      </div>`).join('')}
+  </div>`;
+}
+
+function collectBaoCaoChuyenMonChiTiet(boxId='baoCaoChuyenMonBox'){
+  const box = document.getElementById(boxId);
+  const out = {};
+  BAO_CAO_CHUYEN_MON_FIELDS.forEach(f => out[f.key] = '');
+  if(!box) return out;
+  box.querySelectorAll('.bao-cao-cm-detail[data-key]').forEach(el => {
+    out[el.dataset.key] = (el.value || '').trim();
+  });
+  return out;
+}
+
+function buildBaoCaoChuyenMonSummary(detail={}, fallback=''){
+  const d = normalizeBaoCaoChuyenMonDetail(detail);
+  if(!hasBaoCaoChuyenMonDetail(d)) return String(fallback || 'Không có gì đặc biệt').trim() || 'Không có gì đặc biệt';
+  return BAO_CAO_CHUYEN_MON_FIELDS.map(f => `${f.label}: ${d[f.key] || 'Không có'}`).join('\n');
+}
+
+function renderBaoCaoChuyenMonInput(isSplit){
+  const box = $('#baoCaoChuyenMonBox');
+  if(!box) return;
+  const currentDetail = collectBaoCaoChuyenMonChiTiet('baoCaoChuyenMonBox');
+  const currentText = $('#baoCaoChuyenMon')?.value || '';
+  if(!isSplit){
+    if(!$('#baoCaoChuyenMon')) box.innerHTML = `<textarea id="baoCaoChuyenMon">${esc(buildBaoCaoChuyenMonSummary(currentDetail, currentText || 'Không có gì đặc biệt'))}</textarea>`;
+    return;
+  }
+  box.innerHTML = baoCaoChuyenMonDetailHtml(normalizeBaoCaoChuyenMonDetail(currentDetail, currentText), 'baoCaoCM');
+}
+
+function collectBaoCaoChuyenMon(){
+  if($('#baoCaoChuyenMonBox .bao-cao-cm-detail')) return buildBaoCaoChuyenMonSummary(collectBaoCaoChuyenMonChiTiet('baoCaoChuyenMonBox'));
+  return $('#baoCaoChuyenMon')?.value || '';
+}
+
+function renderEditBaoCaoChuyenMonInput(p={}){
+  if(!isTruyenMauDept(p.khoaPhong || '')) return `<textarea id="editBaoCaoCM">${esc(p.baoCaoChuyenMon || '')}</textarea>`;
+  const detail = normalizeBaoCaoChuyenMonDetail(p.baoCaoChuyenMonChiTiet, p.baoCaoChuyenMon || '');
+  return `<div id="editBaoCaoChuyenMonBox">${baoCaoChuyenMonDetailHtml(detail, 'editBaoCaoCM')}</div>`;
+}
+
+function collectEditBaoCaoChuyenMon(){
+  if($('#editBaoCaoChuyenMonBox .bao-cao-cm-detail')) return buildBaoCaoChuyenMonSummary(collectBaoCaoChuyenMonChiTiet('editBaoCaoChuyenMonBox'));
+  return $('#editBaoCaoCM')?.value || '';
+}
+
+function renderBaoCaoChuyenMonView(detail={}, text=''){
+  const d = normalizeBaoCaoChuyenMonDetail(detail, text || '');
+  if(!hasBaoCaoChuyenMonDetail(d)) return esc(text || '');
+  return `<div class="report-compact-value">${BAO_CAO_CHUYEN_MON_FIELDS.map(f => `<div><strong>${esc(f.label)}:</strong> ${esc(d[f.key] || 'Không có')}</div>`).join('')}</div>`;
+}
+
+function renderBaoCaoChuyenMonGiaoBanHtml(report={}){
+  const text = report.baoCaoChuyenMon || report.BaoCaoChuyenMon || '';
+  const detail = report.baoCaoChuyenMonChiTiet || report.BaoCaoChuyenMonChiTiet || report.BaoCaoChuyenMonChiTietJson || {};
+  const d = normalizeBaoCaoChuyenMonDetail(detail, text || '');
+  if(!hasBaoCaoChuyenMonDetail(d)) return esc(text || 'Không có gì đặc biệt').replace(/\n/g,'<br>');
+  return `<div class="report-compact-value">${BAO_CAO_CHUYEN_MON_FIELDS.map(f => `<div>- <strong>${esc(f.label)}:</strong> ${esc(d[f.key] || 'Không có')}</div>`).join('')}</div>`;
+}
+
 function renderSoLieuTrucInput(isTM){
   const box = $('#soLieuTrucBox');
   if(!box) return;
@@ -6097,7 +6207,8 @@ async function submitCreatePhieu(){
     khoaPhong: $('#createDept').value,
     nhanVienThuongTruc: state.selectedStaff,
     soLieuTruc: collectSoLieuTruc(),
-    baoCaoChuyenMon: $('#baoCaoChuyenMon')?.value || '',
+    baoCaoChuyenMon: collectBaoCaoChuyenMon(),
+    baoCaoChuyenMonChiTiet: collectBaoCaoChuyenMonChiTiet('baoCaoChuyenMonBox'),
     baoCaoVanDeKhac: $('#baoCaoVanDeKhac')?.value || '',
     banGiaoTaiSan: collectBanGiaoTaiSan(),
     banGiaoChuyenMon: $('#banGiaoChuyenMon').value,
@@ -8061,7 +8172,7 @@ function showPhieuModal(p, opts={}){
     <div class="list-card data-card">
       <div class="field-row"><span class="field-name">2.1 Nhân viên thường trực</span><div class="field-value">${esc(renderStaffNameList(p.nhanVienThuongTruc) || 'Chưa nhập')}</div></div>
       <div class="field-row"><span class="field-name">2.2 Tình hình chung / số liệu trực</span><div class="field-value">${formatSoLieuTrucCompact(p.soLieuTruc || '')}</div></div>
-      <div class="field-row"><span class="field-name">2.3 Chuyên môn</span><div class="field-value">${esc(p.baoCaoChuyenMon || '')}</div></div>
+      <div class="field-row"><span class="field-name">2.3 Chuyên môn</span><div class="field-value">${renderBaoCaoChuyenMonView(p.baoCaoChuyenMonChiTiet, p.baoCaoChuyenMon || '')}</div></div>
       <div class="field-row"><span class="field-name">2.4 Vấn đề khác</span><div class="field-value">${esc(p.baoCaoVanDeKhac || '')}</div></div>
     </div>
   ` : '';
@@ -8210,7 +8321,7 @@ window.editPhieu = async function(phieuID, btn){
                 <label>2.2 Tình hình chung / số liệu trực</label>
                 <div id="editSoLieuTrucBox">${renderEditSoLieuTrucInput(p)}</div>
               </div>
-              <div class="col-12"><label>2.3 Chuyên môn</label><textarea id="editBaoCaoCM">${esc(p.baoCaoChuyenMon||'')}</textarea></div>
+              <div class="col-12"><label>2.3 Chuyên môn</label>${renderEditBaoCaoChuyenMonInput(p)}</div>
               <div class="col-12"><label>2.4 Vấn đề khác</label><textarea id="editBaoCaoKhac">${esc(p.baoCaoVanDeKhac||'')}</textarea></div>
             </div>
           </div>
@@ -8511,7 +8622,8 @@ window.saveEditPhieu = async function(phieuID, btn){
     nhanVienThuongTruc: state.selectedStaff,
     soLieuTruc: $('#editSoLieuTrucBox') ? collectEditSoLieuTruc() : '',
     noiDungBaoCaoKhoMau: $('#editBaoCaoKhoMauNoiDung')?.value || '',
-    baoCaoChuyenMon: $('#editBaoCaoCM')?.value || '',
+    baoCaoChuyenMon: collectEditBaoCaoChuyenMon(),
+    baoCaoChuyenMonChiTiet: collectBaoCaoChuyenMonChiTiet('editBaoCaoChuyenMonBox'),
     baoCaoVanDeKhac: $('#editBaoCaoKhac')?.value || '',
     banGiaoTaiSan: $('#editBanGiaoTaiSanBox') ? collectEditBanGiaoTaiSan() : '',
     banGiaoChuyenMon: $('#editBGCM')?.value || '',
@@ -8933,7 +9045,7 @@ function renderGiaoBanStructuredPreviewHtml(isDotXuat){
     pvLine('gb-pv-sub','1.2. Dữ liệu trực'),
     pvLine('gb-pv-detail compact', formatSoLieuTrucCompact(r.soLieuTruc || 'Chưa nhập')),
     pvLine('gb-pv-sub','1.3. Chuyên môn'),
-    pvLine('gb-pv-detail', pvHtml(r.baoCaoChuyenMon || '')),
+    pvLine('gb-pv-detail', renderBaoCaoChuyenMonGiaoBanHtml(r)),
     pvLine('gb-pv-sub','1.4. Vấn đề khác'),
     pvLine('gb-pv-detail', pvHtml(r.baoCaoVanDeKhac || ''))
   ].join('')).join('') : pvLine('gb-pv-detail','Chưa có báo cáo thường trực chưa giao ban.');
@@ -8997,7 +9109,7 @@ function renderGiaoBanModal(){
       <div class="report-day-title">Ngày ${dateVi(r.ngayTruc)}</div>
       <div class="report-item"><div class="report-label">1.1. Nhân viên trực</div><div class="report-value">${esc(renderStaffNameList(r.nhanVienThuongTruc) || 'Chưa nhập')}</div></div>
       <div class="report-item"><div class="report-label">1.2. Dữ liệu trực</div><div class="report-compact-value">${formatSoLieuTrucCompact(r.soLieuTruc)}</div></div>
-      <div class="report-item"><div class="report-label">1.3. Chuyên môn</div><div class="report-value">${esc(r.baoCaoChuyenMon || '')}</div></div>
+      <div class="report-item"><div class="report-label">1.3. Chuyên môn</div><div class="report-value">${renderBaoCaoChuyenMonGiaoBanHtml(r)}</div></div>
       <div class="report-item"><div class="report-label">1.4. Vấn đề khác</div><div class="report-value">${esc(r.baoCaoVanDeKhac || '')}</div></div>
     </div>
   `).join('') : `<div class="empty">Chưa có báo cáo thường trực chưa giao ban.</div>`;
@@ -12105,8 +12217,20 @@ function showConfirmDialog({title='Xác nhận', message='', confirmText='Xác n
   });
 }
 
+function normalizeDeptFeatureName(value){
+  return norm(value).replace(/[^\w/]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function isXnhhCsNinhBinhDept(value){
+  const n = normalizeDeptFeatureName(value);
+  return n.includes('xnhh cs ninh binh')
+    || n.includes('xet nghiem huyet hoc cs ninh binh')
+    || n.includes('xet nghiem huyet hoc co so ninh binh');
+}
+
 function isTruyenMauDept(value){
-  return norm(value).includes('truyen mau');
+  const n = normalizeDeptFeatureName(value);
+  return n.includes('truyen mau') || isXnhhCsNinhBinhDept(n);
 }
 
 function defaultTmEquipmentConfig(){
